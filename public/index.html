@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElementorForge — HTML to Elementor JSON</title>
+    <meta name="description" content="Convert HTML templates to native Elementor JSON widgets. AI-powered generation with one-click conversion.">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span class="logo-icon">⚡</span>
+            <div>
+                <div class="logo-title">ElementorForge</div>
+                <div class="logo-sub">HTML → JSON Converter</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-tab="converter" id="nav-converter">
+                <i class="fas fa-code"></i>
+                <span>Converter</span>
+            </button>
+            <button class="nav-item" data-tab="ai-studio" id="nav-ai-studio">
+                <i class="fas fa-robot"></i>
+                <span>AI Studio</span>
+            </button>
+            <button class="nav-item" data-tab="settings" id="nav-settings">
+                <i class="fas fa-key"></i>
+                <span>Settings</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="status-title">API Providers</div>
+            <div class="provider-status" id="providerStatus">
+                <div class="status-item" id="status-gemini"><span class="dot"></span>Gemini</div>
+                <div class="status-item" id="status-groq"><span class="dot"></span>Groq</div>
+                <div class="status-item" id="status-together"><span class="dot"></span>Together.ai</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->
+    <main class="main-content">
+
+        <!-- ── CONVERTER TAB ───────────────────────────────────────────────── -->
+        <section class="tab-panel active" id="tab-converter">
+            <div class="panel-header">
+                <div>
+                    <h1 class="panel-title">HTML → Elementor JSON</h1>
+                    <p class="panel-desc">Paste or upload your HTML and get an Elementor-ready JSON template instantly.</p>
+                </div>
+                <div class="panel-actions">
+                    <input type="text" id="pageTitle" class="input-sm" placeholder="Page title (optional)" value="Converted Page">
+                    <button class="btn-primary" id="convertBtn"><i class="fas fa-bolt"></i> Convert</button>
+                </div>
+            </div>
+
+            <div class="split-pane">
+                <!-- Left: HTML Input -->
+                <div class="pane pane-left">
+                    <div class="pane-toolbar">
+                        <span class="pane-label"><i class="fas fa-file-code"></i> HTML Input</span>
+                        <div class="pane-actions">
+                            <label class="btn-ghost btn-sm" for="fileUpload"><i class="fas fa-upload"></i> Upload</label>
+                            <input type="file" id="fileUpload" accept=".html,.htm" style="display:none">
+                            <button class="btn-ghost btn-sm" id="clearHtml"><i class="fas fa-trash"></i> Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Drop Zone (hidden once content typed) -->
+                    <div class="drop-zone" id="dropZone">
+                        <i class="fas fa-file-code drop-icon"></i>
+                        <p>Drop an HTML file or click to upload</p>
+                        <span class="drop-hint">or paste directly into the editor below</span>
+                    </div>
+
+                    <textarea class="code-editor" id="htmlInput" placeholder="<!-- Paste your HTML here... -->&#10;&#10;Tip: Use AI Studio to generate optimized HTML first!"></textarea>
+                    <div class="pane-footer">
+                        <span class="char-count" id="charCount">0 chars</span>
+                        <span class="footer-hint" id="converterHint"><i class="fas fa-info-circle"></i> Click Convert →</span>
+                    </div>
+                </div>
+
+                <!-- Right: JSON Output -->
+                <div class="pane pane-right">
+                    <div class="pane-toolbar">
+                        <span class="pane-label"><i class="fas fa-code"></i> Elementor JSON</span>
+                        <div class="pane-actions" id="jsonActions" style="display:none">
+                            <button class="btn-ghost btn-sm" id="copyJson"><i class="fas fa-copy"></i> Copy</button>
+                            <button class="btn-primary btn-sm" id="downloadJson"><i class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+
+                    <div class="output-placeholder" id="outputPlaceholder">
+                        <div class="placeholder-icon"><i class="fas fa-arrow-left"></i></div>
+                        <p class="placeholder-title">Paste HTML and click Convert</p>
+                        <div class="output-tips">
+                            <div class="tip"><i class="fas fa-check-circle"></i> Native Elementor widgets</div>
+                            <div class="tip"><i class="fas fa-check-circle"></i> Plus Jakarta Sans typography</div>
+                            <div class="tip"><i class="fas fa-check-circle"></i> Pillow-shaped buttons</div>
+                            <div class="tip"><i class="fas fa-check-circle"></i> Correct isInner / elType flags</div>
+                            <div class="tip"><i class="fas fa-check-circle"></i> FontAwesome icon mapping</div>
+                            <div class="tip"><i class="fas fa-check-circle"></i> Ready-to-import template</div>
+                        </div>
+                    </div>
+
+                    <textarea class="code-editor json-output" id="jsonOutput" style="display:none" readonly spellcheck="false"></textarea>
+                    <div class="pane-footer" id="jsonStats" style="display:none">
+                        <span id="jsonStatsText"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── AI STUDIO TAB ───────────────────────────────────────────────── -->
+        <section class="tab-panel" id="tab-ai-studio">
+            <div class="panel-header">
+                <div>
+                    <h1 class="panel-title">AI Studio</h1>
+                    <p class="panel-desc">Generate Elementor-optimized HTML with AI, then convert to JSON in one click.</p>
+                </div>
+            </div>
+
+            <div class="ai-layout">
+                <!-- Left: Controls -->
+                <div class="ai-controls">
+
+                    <div class="control-group">
+                        <label class="control-label">AI Provider</label>
+                        <div class="provider-pills" id="providerPills">
+                            <button class="provider-pill active" data-provider="gemini" id="pill-gemini">
+                                <span class="pill-dot" id="pill-dot-gemini"></span>
+                                <span>Gemini</span>
+                                <span class="pill-badge" id="pill-badge-gemini"></span>
+                            </button>
+                            <button class="provider-pill" data-provider="groq" id="pill-groq">
+                                <span class="pill-dot" id="pill-dot-groq"></span>
+                                <span>Groq</span>
+                                <span class="pill-badge" id="pill-badge-groq"></span>
+                            </button>
+                            <button class="provider-pill" data-provider="together" id="pill-together">
+                                <span class="pill-dot" id="pill-dot-together"></span>
+                                <span>Together.ai</span>
+                                <span class="pill-badge" id="pill-badge-together"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="aiPageTitle">Page Title</label>
+                        <input type="text" class="input-field" id="aiPageTitle" placeholder="e.g. Services Page">
+                    </div>
+
+                    <div class="control-group" style="flex:1;display:flex;flex-direction:column;">
+                        <label class="control-label" for="aiPrompt">Prompt</label>
+                        <textarea class="input-field prompt-input" id="aiPrompt" placeholder="Describe the page you want to create...&#10;&#10;Examples:&#10;• Services page with 9 BPO service cards&#10;• Landing hero section with blue CTA button&#10;• About page with team grid and testimonials&#10;• Contact page with company info"></textarea>
+                    </div>
+
+                    <button class="btn-primary btn-full" id="generateBtn">
+                        <i class="fas fa-robot"></i> Generate HTML
+                    </button>
+
+                    <div class="prompt-history" id="promptHistory" style="display:none">
+                        <div class="history-title"><i class="fas fa-clock"></i> Recent Prompts</div>
+                        <div id="historyList"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Output -->
+                <div class="ai-output-panel">
+                    <div class="output-tabs-bar">
+                        <button class="output-tab active" data-output="html-code" id="tabHtmlCode">HTML Code</button>
+                        <button class="output-tab" data-output="html-preview" id="tabHtmlPreview">Preview</button>
+                        <div class="tabs-spacer"></div>
+                        <div class="ai-output-actions" id="aiOutputActions" style="display:none">
+                            <button class="btn-ghost btn-sm" id="copyAiHtml"><i class="fas fa-copy"></i> Copy HTML</button>
+                            <button class="btn-ghost btn-sm" id="sendToConverter"><i class="fas fa-arrow-right"></i> Send to Converter</button>
+                            <button class="btn-primary btn-sm" id="generateAndConvert"><i class="fas fa-bolt"></i> Convert to JSON</button>
+                        </div>
+                    </div>
+
+                    <div class="output-body" id="aiOutputBody">
+                        <div class="ai-placeholder" id="aiPlaceholder">
+                            <i class="fas fa-robot"></i>
+                            <p>Your generated HTML will appear here.</p>
+                            <p class="placeholder-sub">Make sure you have an API key configured in <button class="inline-link" id="goToSettings">Settings</button>.</p>
+                        </div>
+                        <textarea class="code-editor" id="aiHtmlOutput" style="display:none" spellcheck="false" readonly></textarea>
+                        <iframe id="aiPreviewFrame" style="display:none;width:100%;height:100%;border:none;" title="HTML Preview"></iframe>
+                    </div>
+
+                    <!-- JSON Result (revealed after Convert to JSON) -->
+                    <div class="ai-json-result" id="aiJsonResult" style="display:none">
+                        <div class="pane-toolbar">
+                            <span class="pane-label"><i class="fas fa-code"></i> Generated Elementor JSON</span>
+                            <div class="pane-actions">
+                                <span id="aiJsonStats" class="stats-text"></span>
+                                <button class="btn-ghost btn-sm" id="copyAiJson"><i class="fas fa-copy"></i> Copy</button>
+                                <button class="btn-primary btn-sm" id="downloadAiJson"><i class="fas fa-download"></i> Download</button>
+                            </div>
+                        </div>
+                        <textarea class="code-editor json-output" id="aiJsonOutput" readonly spellcheck="false"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SETTINGS TAB ────────────────────────────────────────────────── -->
+        <section class="tab-panel" id="tab-settings">
+            <div class="panel-header">
+                <div>
+                    <h1 class="panel-title">API Settings</h1>
+                    <p class="panel-desc">Configure AI providers. Keys are stored locally in <code>.env</code> — never sent anywhere except the provider's API.</p>
+                </div>
+            </div>
+
+            <div class="settings-content">
+                <div class="settings-grid">
+                    <!-- Gemini -->
+                    <div class="settings-card" id="card-gemini">
+                        <div class="settings-card-header">
+                            <div class="provider-logo gemini-logo">G</div>
+                            <div class="settings-card-info">
+                                <h3>Google Gemini</h3>
+                                <p>Free: 15 req/min · Gemini 2.0 Flash</p>
+                            </div>
+                            <div class="key-badge" id="badge-gemini">Not Set</div>
+                        </div>
+                        <div class="key-input-row">
+                            <input type="password" class="input-field" id="key-gemini" placeholder="AIza...">
+                            <button class="btn-ghost btn-sm toggle-key" data-target="key-gemini" title="Show/hide key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="settings-card-actions">
+                            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="btn-ghost btn-sm">
+                                <i class="fas fa-external-link-alt"></i> Get Key
+                            </a>
+                            <button class="btn-ghost btn-sm test-key-btn" data-provider="gemini" id="test-gemini">
+                                <i class="fas fa-plug"></i> Test
+                            </button>
+                            <button class="btn-primary btn-sm save-key-btn" data-provider="gemini" id="save-gemini">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                        <div class="key-test-result" id="test-result-gemini"></div>
+                    </div>
+
+                    <!-- Groq -->
+                    <div class="settings-card" id="card-groq">
+                        <div class="settings-card-header">
+                            <div class="provider-logo groq-logo">Q</div>
+                            <div class="settings-card-info">
+                                <h3>Groq</h3>
+                                <p>Free: 30 req/min · Llama 3.3 70B</p>
+                            </div>
+                            <div class="key-badge" id="badge-groq">Not Set</div>
+                        </div>
+                        <div class="key-input-row">
+                            <input type="password" class="input-field" id="key-groq" placeholder="gsk_...">
+                            <button class="btn-ghost btn-sm toggle-key" data-target="key-groq" title="Show/hide key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="settings-card-actions">
+                            <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="btn-ghost btn-sm">
+                                <i class="fas fa-external-link-alt"></i> Get Key
+                            </a>
+                            <button class="btn-ghost btn-sm test-key-btn" data-provider="groq" id="test-groq">
+                                <i class="fas fa-plug"></i> Test
+                            </button>
+                            <button class="btn-primary btn-sm save-key-btn" data-provider="groq" id="save-groq">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                        <div class="key-test-result" id="test-result-groq"></div>
+                    </div>
+
+                    <!-- Together.ai -->
+                    <div class="settings-card" id="card-together">
+                        <div class="settings-card-header">
+                            <div class="provider-logo together-logo">T</div>
+                            <div class="settings-card-info">
+                                <h3>Together.ai</h3>
+                                <p>Free $1 credit · Llama-3.3 70B Turbo</p>
+                            </div>
+                            <div class="key-badge" id="badge-together">Not Set</div>
+                        </div>
+                        <div class="key-input-row">
+                            <input type="password" class="input-field" id="key-together" placeholder="tgth-...">
+                            <button class="btn-ghost btn-sm toggle-key" data-target="key-together" title="Show/hide key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="settings-card-actions">
+                            <a href="https://api.together.ai/settings/api-keys" target="_blank" rel="noopener" class="btn-ghost btn-sm">
+                                <i class="fas fa-external-link-alt"></i> Get Key
+                            </a>
+                            <button class="btn-ghost btn-sm test-key-btn" data-provider="together" id="test-together">
+                                <i class="fas fa-plug"></i> Test
+                            </button>
+                            <button class="btn-primary btn-sm save-key-btn" data-provider="together" id="save-together">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                        <div class="key-test-result" id="test-result-together"></div>
+                    </div>
+                </div>
+
+                <!-- Conversion Rules Reference -->
+                <div class="rules-card">
+                    <h3><i class="fas fa-shield-alt"></i> Built-in Conversion Rules</h3>
+                    <p>These rules are permanently baked into the converter engine based on extensive InnoEdge BPO project experience:</p>
+                    <div class="rules-grid">
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Every node has <code>id</code>, <code>isInner</code>, <code>elType</code>, <code>elements:[]</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> <code>widgetType</code> only on <code>elType:"widget"</code> nodes</div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> <code>border_radius</code> always full 6-key object with <code>isLinked</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Top-level sections always have <code>layout:"boxed"</code> + <code>content_width</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Inner sections always have <code>isInner:true</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Typography always <code>"custom"</code> with <code>font_family:"Plus Jakarta Sans"</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Phosphor icons auto-remapped to FontAwesome equivalents</div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Buttons always pill-shaped (<code>border-radius: 100px</code>)</div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Icon-box <code>selected_icon</code> always <code>{value:"fas fa-x", library:"fa-solid"}</code></div>
+                        <div class="rule-item"><i class="fas fa-check-circle"></i> Template version always <code>"0.4"</code>, type <code>"page"</code></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── TOAST ──────────────────────────────────────────────────────────── -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- ── LOADER ─────────────────────────────────────────────────────────── -->
+    <div class="loader-overlay" id="loaderOverlay" style="display:none" role="dialog" aria-label="Loading">
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <div class="loader-text" id="loaderText">Processing...</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
